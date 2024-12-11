@@ -3,9 +3,10 @@
  * @module
  */
 
-export * from "./error.ts";
-export * from "./logger.ts";
-export * from "./html.ts";
 export * from "./crypto.ts";
+export * from "./error.ts";
+export * from "./html.ts";
 export * from "./http.ts";
-export * from "./http.ts";
+export * from "./rpc.ts";
+export * from "./ws.ts";
+
