@@ -5,5 +5,9 @@
   "exports": "./mod.ts",
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "dom.asynciterable", "deno.ns"]
+  },
+  "imports": {
+    "jsr:@std/media-types": "jsr:@std/media-types@^1.1.0",
+    "jsr:@std/path": "jsr:@std/path@^1.0.8"
   }
 }
