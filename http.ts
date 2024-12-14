@@ -3,20 +3,20 @@ import { extname } from "@std/path";
 
 import { Err, type Fallible } from "./error.ts";
 
-export async function sendContent(path: string): Promise<Handler> {
+export async function sendFile(path: string): Promise<Fallible<Response>> {
   try {
     const content = await Deno.readFile(path);
-    const ct = contentType(extname(path)) ?? "text/plain";
-    return () =>
-      [
-        new Response(content, {
-          headers: { "Content-Type": ct },
-        }),
-        null,
-      ] as const;
+    return [
+      new Response(content, {
+        headers: {
+          "Content-Type": contentType(extname(path)) ?? "text/plain",
+        },
+      }),
+      null,
+    ] as const;
   } catch (err) {
     if (err instanceof Error) {
-      return () => [null, new Err(err.message)] as const;
+      return [null, new Err(err.message)] as const;
     }
     throw err;
   }
@@ -44,7 +44,7 @@ export type Context = {
 
 export type Handler = (
   req: Request,
-  ctx: Context
+  ctx: Context,
 ) => Promise<Fallible<Response>> | Fallible<Response>;
 
 export type Middleware = (next: Handler) => Handler;
@@ -66,7 +66,7 @@ export function addMiddlewareToRoutes(
       Object.entries(handlers).map(([method, handler]) => [
         method,
         middleware(handler),
-      ])
+      ]),
     ),
   }));
 }
