@@ -16,34 +16,39 @@ export type Attribute =
   | "name"
   | "onload"
   | "onclick"
-  | "type";
+  | "type"
+  | "charset"
+  | "content"
+  | "lang";
 
 export type Attributes = Partial<{ [key in Attribute]: string[] | string }>;
 
 export type LooseAutocomplete<T extends string> = T | Omit<string, T>;
 
+export type RenderOptions = {
+  doctype: string;
+  lang: string;
+  headers?: HeadersInit;
+};
+
 export function render(
   head: string,
   body: string,
-  doctype = "<!DOCTYPE html>"
+  options: RenderOptions = { doctype: "<!DOCTYPE html>", lang: "en" },
 ): Fallible<Response> {
-  return html(`${doctype}<html>${head}${body}</html>`);
-}
-
-export function html(
-  content: string,
-  headers?: HeadersInit
-): Fallible<Response> {
-  const res = new Response(content, {
-    headers: { "Content-Type": "text/html", ...headers },
-  });
+  const res = new Response(
+    `${options.doctype}<html lang=${options.lang}>${head}${body}</html>`,
+    {
+      headers: { "Content-Type": "text/html", ...options.headers },
+    },
+  );
 
   return [res, null] as const;
 }
 
 export function attributeToString(
   attr: string,
-  values: string[] | string
+  values: string[] | string,
 ): string | undefined {
   if (typeof values === "string") {
     return `${attr}="${values}"`;
@@ -114,4 +119,24 @@ export function input(attributes: Attributes, ...children: string[]): string {
 
 export function iframe(attributes: Attributes, ...children: string[]): string {
   return $("iframe", attributes, ...children);
+}
+
+export function header(attributes: Attributes, ...children: string[]): string {
+  return $("header", attributes, ...children);
+}
+
+export function main(attributes: Attributes, ...children: string[]): string {
+  return $("main", attributes, ...children);
+}
+
+export function footer(attributes: Attributes, ...children: string[]): string {
+  return $("footer", attributes, ...children);
+}
+
+export function title(attributes: Attributes, ...children: string[]): string {
+  return $("title", attributes, ...children);
+}
+
+export function html(attributes: Attributes, ...children: string[]): string {
+  return $("html", attributes, ...children);
 }
