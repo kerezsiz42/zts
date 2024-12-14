@@ -140,3 +140,16 @@ export function title(attributes: Attributes, ...children: string[]): string {
 export function html(attributes: Attributes, ...children: string[]): string {
   return $("html", attributes, ...children);
 }
+
+export function a(attributes: Attributes, ...children: string[]): string {
+  return $("a", attributes, ...children);
+}
+
+export function img(attributes: Attributes, ...children: string[]): string {
+  return $("img", attributes, ...children);
+}
+
+export function span(attributes: Attributes, ...children: string[]): string {
+  return $("span", attributes, ...children);
+}
+

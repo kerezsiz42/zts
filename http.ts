@@ -44,7 +44,7 @@ export type Context = {
 
 export type Handler = (
   req: Request,
-  ctx?: Context
+  ctx: Context
 ) => Promise<Fallible<Response>> | Fallible<Response>;
 
 export type Middleware = (next: Handler) => Handler;
@@ -104,7 +104,7 @@ export function handlerFromRoutes(routes: Route[]): Deno.ServeHandler {
       }
 
       const handler = handlers[req.method as Method] as Handler;
-      const ctx = {
+      const ctx: Context = {
         pathParams: result.pathname.groups ?? {},
         searchParams: url.searchParams,
         cookies: {},
