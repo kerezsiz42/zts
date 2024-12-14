@@ -1,11 +1,11 @@
-import { contentType } from "jsr:@std/media-types";
-import { extname } from "jsr:@std/path";
+import { contentType } from "@std/media-types";
+import { extname } from "@std/path";
 
 import { Err, type Fallible } from "./error.ts";
 
 export async function sendContent(path: string): Promise<Handler> {
   try {
-    const content = await Deno.readTextFile(path);
+    const content = await Deno.readFile(path);
     const ct = contentType(extname(path)) ?? "text/plain";
     return () =>
       [
