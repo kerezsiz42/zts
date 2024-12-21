@@ -1,15 +1,15 @@
 import { assertEquals } from "@std/assert";
 
-import { handlerFromRoutes, SendFile } from "./http.ts";
+import { handlerFromRoutes, sendFile, WithCache } from "./http.ts";
 
 Deno.test({
-  name: "SendFile",
+  name: "WithCache",
   permissions: { read: true },
   async fn(t) {
     const handler = handlerFromRoutes([
       {
         pattern: new URLPattern({ pathname: "/http.ts" }),
-        handlers: { GET: SendFile.handle },
+        handlers: { GET: WithCache.middleware(sendFile) },
       },
     ]);
 

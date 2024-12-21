@@ -4,7 +4,8 @@ import { extname } from "@std/path";
 import { Err, erroneous, type Fallible } from "./error.ts";
 
 /**
- * Loads files from filesystem and serves them with client-side caching configured.
+ * Runs the next handler and attaches etag headers to the response.
+ * When a client request a resource with a matching etag then responds with 304 Not Modified.
  *
  * ```
  * Client                Server
@@ -24,48 +25,71 @@ import { Err, erroneous, type Fallible } from "./error.ts";
  *    | 304 Not Modified    |  (4) Server responds with 304 if ETag matches
  * ```
  */
-export class SendFile {
-  /** Associates filepaths with the calculated etags */
+export class WithCache {
+  /** Associates path with the calculated etags */
   static cache: Map<string, string> = new Map();
 
   /** The max-age value for the cache-control header */
   static maxAge = 3600;
 
-  static async handle(req: Request, ctx: Context): Promise<Fallible<Response>> {
-    const reqEtag = req.headers.get("If-None-Match") ?? "";
-    const path = ctx.url.pathname.slice(1);
-    if (SendFile.cache.get(path) === reqEtag) {
-      return [new Response(null, { status: 304 }), null] as const;
-    }
+  static middleware(next: Handler): Handler {
+    return async (req: Request, ctx: Context) => {
+      const [res, err] = await next(req, ctx);
+      if (err !== null) {
+        return [
+          null,
+          new Err("failure while running next handler", err),
+        ] as const;
+      }
 
-    const [content, err] = await erroneous(() => Deno.readFile(path));
-    if (err !== null) {
+      const reqEtag = req.headers.get("If-None-Match") ?? "";
+      if (WithCache.cache.get(ctx.url.pathname) === reqEtag) {
+        return [new Response(null, { status: 304 }), null] as const;
+      }
+
+      const buff = await res.arrayBuffer();
+      const content = new Uint8Array(buff);
+      const digest = await crypto.subtle.digest("SHA-256", content);
+
+      let etag = "";
+      for (const byte of new Uint8Array(digest)) {
+        etag += byte.toString(16).padStart(2, "0");
+      }
+
+      WithCache.cache.set(ctx.url.pathname, etag);
+
       return [
+        new Response(content, {
+          headers: {
+            ...res.headers,
+            ETag: etag,
+            "Cache-Control": `max-age=${WithCache.maxAge}`,
+          },
+        }),
         null,
-        new Err("failure while loading file from filesystem", err),
       ] as const;
-    }
-
-    const digest = await crypto.subtle.digest("SHA-256", content);
-
-    let etag = "";
-    for (const byte of new Uint8Array(digest)) {
-      etag += byte.toString(16).padStart(2, "0");
-    }
-
-    SendFile.cache.set(path, etag);
-
-    return [
-      new Response(content, {
-        headers: {
-          ETag: etag,
-          "Content-Type": contentType(extname(path)) ?? "text/plain",
-          "Cache-Control": `max-age=${SendFile.maxAge}`,
-        },
-      }),
-      null,
-    ] as const;
+    };
   }
+}
+
+export async function sendFile(
+  _req: Request,
+  ctx: Context
+): Promise<Fallible<Response>> {
+  const path = ctx.url.pathname.slice(1);
+  const [content, err] = await erroneous(() => Deno.readFile(path));
+  if (err !== null) {
+    return [null, new Err("failure while loading file", err)] as const;
+  }
+
+  return [
+    new Response(content, {
+      headers: {
+        "Content-Type": contentType(extname(path)) ?? "text/plain",
+      },
+    }),
+    null,
+  ] as const;
 }
 
 const methods = [
