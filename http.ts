@@ -1,7 +1,7 @@
 import { contentType } from "@std/media-types";
 import { extname } from "@std/path";
 
-import { erroneous, type Fallible } from "./error.ts";
+import { Err, erroneous, type Fallible } from "./error.ts";
 
 /**
  * Loads files from filesystem and serves them with client-side caching configured.
@@ -41,8 +41,8 @@ export class SendFile {
     const [content, err] = await erroneous(() => Deno.readFile(path));
     if (err !== null) {
       return [
-        new Response("Internal Server Error", { status: 500 }),
         null,
+        new Err("failure while loading file from filesystem", err),
       ] as const;
     }
 
