@@ -1,6 +1,6 @@
 {
   "name": "@kerezsiz42/zts",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "license": "MIT",
   "exports": "./mod.ts",
   "compilerOptions": {
@@ -8,6 +8,7 @@
   },
   "imports": {
     "@std/media-types": "jsr:@std/media-types@^1.1.0",
-    "@std/path": "jsr:@std/path@^1.0.8"
+    "@std/path": "jsr:@std/path@^1.0.8",
+    "@std/assert": "jsr:@std/assert@^1.0.8"
   }
 }

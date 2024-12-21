@@ -17,12 +17,12 @@ export class ScryptPassword {
       const salt = nodeCrypto.randomBytes(this.#saltLength).toString("hex");
 
       nodeCrypto.scrypt(password, salt, this.#keyLength, (err, derivedKey) => {
-        if (err) {
-          return reject([null, new Err(err.message)]);
+        if (err !== null) {
+          return reject([null, new Err(err.message)] as const);
         }
 
         const hash = `${salt}:${derivedKey.toString("hex")}`;
-        return resolve([hash, null]);
+        return resolve([hash, null] as const);
       });
     });
   }
@@ -32,15 +32,15 @@ export class ScryptPassword {
       const [salt, key] = hash.split(":");
 
       nodeCrypto.scrypt(password, salt, this.#keyLength, (err, derivedKey) => {
-        if (err) {
-          return reject([null, new Err(err.message)]);
+        if (err !== null) {
+          return reject([null, new Err(err.message)] as const);
         }
 
         const isEqual = nodeCrypto.timingSafeEqual(
-          derivedKey,
+          this.#textEncoder.encode(derivedKey.toString("hex")),
           this.#textEncoder.encode(key)
         );
-        return resolve([isEqual, null]);
+        return resolve([isEqual, null] as const);
       });
     });
   }
