@@ -26,7 +26,7 @@ import { erroneous, type Fallible } from "./error.ts";
  */
 export class SendFile {
   /** Associates filepaths with the calculated etags */
-  static cache = new Map<string, string>();
+  static cache: Map<string, string> = new Map();
 
   /** The max-age value for the cache-control header */
   static maxAge = 3600;
